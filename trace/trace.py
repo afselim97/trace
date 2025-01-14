@@ -2,7 +2,7 @@
 import numpy as np
 import itertools
 from tqdm import tqdm
-from typing import List,Dict,Iterator
+from typing import List,Iterator
 from numpy.typing import NDArray
 import random
 from numba import njit
@@ -17,35 +17,28 @@ class trace():
         self,
         tree_sequences: Iterator,
         L_list: List[int],
-        sample_ids_dict: Dict[str, List[int]]
+        n_samples: int
         ) -> None:
         """instantiation iterates over an iterator of tree sequences. For each tree sequence, it reads off L local trees, as specified by the L_list parameter.
             For each of these trees, a preorder traversal of the local tree is stored in a column of the "traversal_matrix." The time of these nodes and the time of their parents is also stored in other matrices.
 
         Args:
-            tree_sequences (Union[Iterator[tskit.TreeSequence], tskit.TreeSequence]): either an iterator of tree sequence is provided, or a single tree sequence. If an iterator is provided, then a list is expected for the L_list parameter. If a single tree sequence is provided, hten a single integer value is expected for L_trees (number of trees to extract from this tree sequence)
-            L_list (Union[List[int],int]): either a list (if tree_sequences is an iterator) or an integer (if a single tree_sequence was provided). If an iterator of tree sequences is provided, but a single value of L is provided, it will be assumed that equal number of trees is to be extracted from each tree sequence
-            sample_ids_dict: a dictionary where keys are population names and values are the sample ids for each population
+            tree_sequences ([Iterator[tskit.TreeSequence]): either an iterator of tree sequence is provided, or a single tree sequence. If an iterator is provided, then a list is expected for the L_list parameter. If a single tree sequence is provided, hten a single integer value is expected for L_trees (number of trees to extract from this tree sequence)
+            L_list (List[int]): A list for the number of trees to be sampled from each tree sequence.
+            n_samples[int] : number of samples in the trees
         """
         # Basic definitions
-        self.samples = sample_ids_dict
-        sample_ids_list = np.concatenate(list(sample_ids_dict.values()))
-        self.sample_ids_list = sample_ids_list
-        n = len(sample_ids_list)
-        K = len(list(sample_ids_dict.keys()))
-
-        self.K = K
-        self.n = n
+        self.n = n_samples
         self.L = np.sum(L_list) # Total number of trees
 
         burnin = 0.1 # This is the percentage of a chromosome in the beginning and the end to avoid extracting trees from (telomere and centromere)
         sim_flag=False # True when the data input is from simulation of independent loci through msprime replicates
         cumsum_L = np.concatenate(([0],np.cumsum(L_list)))  
 
-        genotype_matrix = np.zeros((n,self.L)) # The genotype matrix built from a random SNP from independent trees
-        traversal_matrix = np.zeros((2*n-1,self.L),int) # A matrix that will store preorer traversals of the nodes in each tree
-        node_time_matrix = np.zeros((2*n-1,self.L)) # A matrix that will store the times of each node in each tree, organized by their pre-order traversal
-        parent_time_matrix = np.zeros((2*n-1,self.L)) # A matrix that will store the times of the parent each node in each tree, organized by their pre-order traversal
+        genotype_matrix = np.zeros((self.n,self.L)) # The genotype matrix built from a random SNP from independent trees
+        traversal_matrix = np.zeros((2*self.n-1,self.L),int) # A matrix that will store preorer traversals of the nodes in each tree
+        node_time_matrix = np.zeros((2*self.n-1,self.L)) # A matrix that will store the times of each node in each tree, organized by their pre-order traversal
+        parent_time_matrix = np.zeros((2*self.n-1,self.L)) # A matrix that will store the times of the parent each node in each tree, organized by their pre-order traversal
         num_nodes_tree = np.zeros((self.L),int) # Number of nodes in each tree
         
 
