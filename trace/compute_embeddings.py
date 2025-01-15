@@ -90,12 +90,30 @@ def prepare_from_inference(inferred_trees_dir: str,L: int):
     ts_list = (tskit.load(ts_file) for ts_file in ts_files)
     return ts_list,L_list,n_samples
 
+def get_timepoints(min_time: float,max_time: float,num_timepoints: int,log_time: bool,delta: float,node_times):
+
+    if min_time is None:
+        min_time = np.quantile(node_times[node_times!=0],0.01)
+    
+    if max_time is None:
+        max_time = np.quantile(node_times[node_times!=0],0.95)
+
+    if log_time:
+        t_list = np.logspace(np.log10(min_time),np.log10(max_time),num_timepoints)
+    else:
+        t_list = np.linspace(min_time,max_time,num_timepoints)
+    delta_list = np.array([delta]*num_timepoints)
+
+    return t_list,delta_list
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-input", type="str", required=True, help="path to demes file or to directory with inferred trees")
-    parser.add_argument("-output", type="str", required=True, help="output path")
-    parser.add_argument("-mode", type="str", default="inferred", help="either 'simulated' or 'inferred'.")
+    parser.add_argument("-input", type=str, required=True, help="path to demes file or to directory with inferred trees")
+    parser.add_argument("-output", type=str, required=True, help="output path")
+    parser.add_argument("-mode", type=str, default="inferred", help="either 'simulated' or 'inferred'.")
     parser.add_argument("-L", type=int, help="number of independent trees to sample or simulate")
+    parser.add_argument("-min_time", type=float, help="minimum time to start computing rates and embeddings")
     parser.add_argument("-max_time", type=float, help="maximum time to compute rates and embeddings")
     parser.add_argument("-num_timepoints", type=int, defualt=100, help="number of timepoints to use")
     parser.add_argument("-delta", type=float, help="the timw width of each window")
@@ -107,11 +125,14 @@ def main():
     output = args.output
     mode = args.mode
     L = args.L
+    min_time = args.min_time
     max_time = args.max_time
     num_timepoints = args.num_timepoints
     delta = args.delta
     log_time = args.log_time
 
+
+    # Preprocess the trees
     assert mode == "inferred" or mode == "simulated", "mode must be 'simulated' or 'inferred'"
     if mode == "simulated":
         if L is None:
@@ -119,11 +140,18 @@ def main():
         n=50
         ts_list,L_list,n_samples = prepare_from_simulation(demes_file_path =input, n=n, L=L)
     elif mode == "inferred":
+        print("calculating number of trees to sample from each tree sequence")
         ts_list,L_list,n_samples = prepare_from_inference(inferred_trees_dir =input, L=L)
 
+    # Compute the rates
     trace_instance = trace(ts_list,L_list,n_samples)
-    
+    node_times = trace_instance.node_time_matrix
+    t_list,delta_list = get_timepoints(min_time,max_time,num_timepoints,log_time,delta,node_times)
+    num_uncoalesced_through_time,num_coal_events_within_windows,rates_through_time= trace_instance.compute_coal_rates(t_list, delta_list)
 
+    # Compute the embeddings
 
+#%%
 if __name__ == "__main__":
     main()
+# %%

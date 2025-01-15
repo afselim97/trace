@@ -29,29 +29,19 @@ class trace():
         """
         # Basic definitions
         self.n = n_samples
+        self.sample_ids_list = np.arange(n_samples)
         self.L = np.sum(L_list) # Total number of trees
 
         burnin = 0.1 # This is the percentage of a chromosome in the beginning and the end to avoid extracting trees from (telomere and centromere)
-        sim_flag=False # True when the data input is from simulation of independent loci through msprime replicates
         cumsum_L = np.concatenate(([0],np.cumsum(L_list)))  
 
-        genotype_matrix = np.zeros((self.n,self.L)) # The genotype matrix built from a random SNP from independent trees
         traversal_matrix = np.zeros((2*self.n-1,self.L),int) # A matrix that will store preorer traversals of the nodes in each tree
         node_time_matrix = np.zeros((2*self.n-1,self.L)) # A matrix that will store the times of each node in each tree, organized by their pre-order traversal
         parent_time_matrix = np.zeros((2*self.n-1,self.L)) # A matrix that will store the times of the parent each node in each tree, organized by their pre-order traversal
         num_nodes_tree = np.zeros((self.L),int) # Number of nodes in each tree
         
-
-        if np.all(np.array(L_list)==1): # If indepnendent trees are simulated, 1 tree is extracted from each tree sequence
-            sim_flag=True
-
         # extracting the data
         for i,ts in tqdm(enumerate(tree_sequences)):
-            if sim_flag:
-                mutated_ts = msprime.sim_mutations(ts, rate=1e-3,model="binary")
-            else:
-                mutated_ts = ts
-
             L=L_list[i]
             if L == 0: ## Case where no trees are to be extracted from this tree sequence
                 continue
@@ -59,6 +49,7 @@ class trace():
             num_trees = ts.num_trees
             node_times = ts.nodes_time
             trees_iter = ts.trees()
+
             if L == 1 and ts.num_trees == 1: # Case where the tree sequence has a single tree (simulating a chromosome of length 1)
                 trees = trees_iter 
             else: 
@@ -74,15 +65,7 @@ class trace():
                         trees.append(next(itertools.islice(trees_iter, inx, inx+1)))
                         
             for j,tree in enumerate(trees): # Populating the matrices defined above
-                left,right = tree.interval
                 inx = cumsum_L[i]+j
-                try:
-                    geno = next(mutated_ts.variants(left=left,right=right)).genotypes
-                except:
-                    geno = np.zeros(n)
-                
-                genotype_matrix[:,inx] = geno
-
                 preorder = tree.preorder()
                 n_nodes = num_nodes_tree[inx] = len(preorder)
                 traversal_matrix[:n_nodes,inx] = preorder
@@ -93,12 +76,11 @@ class trace():
         
         # Defining the basic attributes of the class
 
-        self.genotype_matrix = genotype_matrix
         self.traversal_matrix = traversal_matrix
         self.node_time_matrix = node_time_matrix
         self.parent_time_matrix = parent_time_matrix
         self.num_nodes_tree = num_nodes_tree
-        self.nodes = traversal_matrix[:,0][~np.in1d(traversal_matrix[:,0],sample_ids_list)]
+        self.nodes = traversal_matrix[:,0][~np.in1d(traversal_matrix[:,0],self.sample_ids_list)]
 
     def coal_events_tree(self,preorder_traversal: List[int], node_times: List[float], t_list_lower: List[float], t_list_upper: List[float], window_list_upper: List[float]) -> NDArray[np.bool_]:
         """For a single tree represented by its preorder traversal, and a sliding time window with potentially variable width,  finds time points where each pair of samples coalesced.
@@ -232,3 +214,4 @@ def get_leaf_sets(preorder_traversal: NDArray[np.int64],parent_node_id: int,samp
             leaf_set = np.ones(n,dtype=np.int32)*-1
     
     return leaf_sets
+# %%
