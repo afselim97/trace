@@ -7,7 +7,7 @@ import glob
 import tskit
 from typing import List
 from tqdm import tqdm
-from trace import *
+from trasp import *
 try:
     import msprime
 except:
@@ -144,7 +144,7 @@ def main():
         ts_list,L_list,n_samples = prepare_from_inference(inferred_trees_dir =input, L=L)
 
     # Compute the rates
-    trace_instance = trace(ts_list,L_list,n_samples)
+    trace_instance = trasp(ts_list,L_list,n_samples)
     node_times = trace_instance.node_time_matrix
     t_list,delta_list = get_timepoints(min_time,max_time,num_timepoints,log_time,delta,node_times)
     num_uncoalesced_through_time,num_coal_events_within_windows,rates_through_time= trace_instance.compute_coal_rates(t_list, delta_list)

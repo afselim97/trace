@@ -9,7 +9,7 @@ from numba import njit
 from numba.typed import List as numba_List
 
 #%%
-class trace():
+class trasp():
     """
     An object used to calculate pairwise coalescent rates as a function of time
     """
