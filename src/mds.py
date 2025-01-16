@@ -59,6 +59,7 @@ def create_embeddings_df(matrix: NDArray, times: NDArray, samples_dict: dict) ->
     df = df.with_columns([
         pl.col("sample_id").map_elements(lambda x: sample_to_pop_dict.get(x, "unknown"),return_dtype=str).alias("population"),
         pl.col("time_inx").map_elements(lambda x: times_dict.get(x, np.nan),return_dtype=float).alias("time"),
+        (pl.col("component") + 1).alias("component")
     ])
     return df
 

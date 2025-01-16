@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#%%
 import numpy as np
 import pandas as pd
 import os
@@ -7,6 +6,7 @@ import glob
 import argparse
 from typing import List
 from tqdm import tqdm
+import shutil
 
 import demes
 import tskit
@@ -43,7 +43,7 @@ def calculate_L_list(num_trees:List[int],L:int) -> List[int]:
         final_allocation = initial_allocation
     return final_allocation
 
-def prepare_from_simulation(demes_file_path: str,n: int,L: int):
+def prepare_from_simulation(demes_file_path: str, output_path: str, n: int, L: int):
     """prepares an iterator of tree sequences given a demes file to simulate.
 
     Args:
@@ -58,11 +58,10 @@ def prepare_from_simulation(demes_file_path: str,n: int,L: int):
     """
     if "SS" in demes_file_path: ## simulate only 2 samples per deme for stepping stones models
         n=2
-    try:
+    else:
         graph = demes.load(demes_file_path)
-    except:
-        print("Invalid demes file")
-        return
+        demes.dump(graph,os.path.join(output_path,"deme.yaml"))
+    
     demography = msprime.Demography.from_demes(graph)
     K=0
     samples = {}
@@ -117,7 +116,7 @@ def get_timepoints(min_time: float,max_time: float,num_timepoints: int,log_time:
 def estimate_delta(node_times,L,average_num_events = 200):
     # Estimates delta based on a rough estimate of Ne from tmrca of trees, such that ~average_num_events trees experience a coalescent event between each two pairs within each delta window
     Ne_estimate = np.mean(node_times[0,:])/2
-    delta_estimate = 200 * Ne_estimate / L
+    delta_estimate = average_num_events * Ne_estimate / L
     return delta_estimate
 
 
@@ -161,7 +160,9 @@ def main():
         if L is None:
             L=10000
         n=50
-        ts_list,L_list,n_samples,population_samples_dict = prepare_from_simulation(demes_file_path =input, n=n, L=L)
+        ts_list,L_list,n_samples,population_samples_dict = prepare_from_simulation(demes_file_path = input, output_path = output, n=n, L=L)
+        shutil.copy(input,output)
+
         print(f"simulating {L} trees under specified demography")
     elif mode == "inferred":
         print("calculating number of trees to sample from each tree sequence")
@@ -188,7 +189,6 @@ def main():
     # Saving data
     data_df.write_parquet(os.path.join(output,"data.parquet"))
     embeddings_df.write_parquet(os.path.join(output,"embeddings.parquet"))
-#%%
+
 if __name__ == "__main__":
     main()
-# %%
