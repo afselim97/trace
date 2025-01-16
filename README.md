@@ -20,7 +20,6 @@ PATH_TO_REPP/src/run_trasp
 '''
 
 Only 3 flags are required (**-input**, **-output** and **metadata**), the rest are optional. Here is a list of available flags
-Only 3 flags are required (**-input**, **-output** and **-metadata**), the rest are optional. Here is a list of available flags:
 
 | flag          | help                                                                                                                                                                   | default                                   |
 |----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
