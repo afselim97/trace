@@ -23,7 +23,7 @@ Only 3 flags are required (**-input**, **-output** and **metadata**), the rest a
 Only 3 flags are required (**-input**, **-output** and **-metadata**), the rest are optional. Here is a list of available flags:
 
 | flag          | help                                                                                                                                                                   | default                                   |
-|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
 | **-input**    | Either the path to the directory containing inferred tree sequence files ending with **.trees** *OR* path to demes file to be simulated                                  | N/A                                       |
 | **-output**   | Path to output directory                                                                                                                                                 | N/A                                       |
 | **-metadata** | Path to metadata file with population label for each sample. Should be a CSV with 2 columns: ("sample_id","population"). Required only if mode is "inferred"             | N/A                                       |
