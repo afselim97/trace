@@ -20,17 +20,21 @@ PATH_TO_REPP/src/run_trasp
 '''
 
 Only 3 flags are required (**-input**, **-output** and **metadata**), the rest are optional. Here is a list of available flags
-|flag|help|default|  
-|**-input**|Either the path to the diretory containing inferred tree sequence files ending with **.trees** *OR* path to demes file to be simulated|N/A|
-|**-output**|Path to output directory|N/A|
-|**-metadata**|Path to metadata file with population label for each sample. Should be a csv with 2 columns: ("sample_id","population"). Required only if mode is "inferred"|N/A|
-|**-mode**|Either *simulated* if input is a demes file or *inferred* if the input is a directory containing inferred trees|inferred|
-|**-L**|Number of trees to be sampled from the tree sequences (or simulated)|10000|
-|**-min_time**|Earliest time to compute rates and embeddings|0.01 quantile of all coalescence events|
-|**-max_time**|Deepest time to compute rates and embeddings|0.95 quantile of all coalescence events|
-|**-num_timepoints**|Number of timepoints to compute rates and embeddings|100|
-|**-log_time**|If set, picks timepoints between minimum or maximum on a logscale. Otherwise uses a linear scale.|False|
-|**-delta**|The time window for computing the rate estimates at each timepoints. (In python script, can use different window sizes for each point)|200/(Ne_estimate*L)|
+Only 3 flags are required (**-input**, **-output** and **-metadata**), the rest are optional. Here is a list of available flags:
+
+| flag          | help                                                                                                                                                                   | default                                   |
+|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| **-input**    | Either the path to the directory containing inferred tree sequence files ending with **.trees** *OR* path to demes file to be simulated                                  | N/A                                       |
+| **-output**   | Path to output directory                                                                                                                                                 | N/A                                       |
+| **-metadata** | Path to metadata file with population label for each sample. Should be a CSV with 2 columns: ("sample_id","population"). Required only if mode is "inferred"             | N/A                                       |
+| **-mode**     | Either *simulated* if input is a demes file or *inferred* if the input is a directory containing inferred trees                                                          | inferred                                  |
+| **-L**        | Number of trees to be sampled from the tree sequences (or simulated)                                                                                                     | 10000                                     |
+| **-min_time** | Earliest time to compute rates and embeddings                                                                                                                            | 0.01 quantile of all coalescence events   |
+| **-max_time** | Deepest time to compute rates and embeddings                                                                                                                             | 0.95 quantile of all coalescence events   |
+| **-num_timepoints** | Number of timepoints to compute rates and embeddings                                                                                                              | 100                                       |
+| **-log_time** | If set, picks timepoints between minimum or maximum on a log scale. Otherwise, uses a linear scale.                                                                       | False                                     |
+| **-delta**    | The time window for computing the rate estimates at each timepoint (In python script, can use different window sizes for each point)                                      | 200/(Ne_estimate*L)                       |
+
 
 For example, running the following command will simulate a basic population split scenario, and apply the method to it.
 '''
