@@ -6,8 +6,12 @@ import glob
 import argparse
 from typing import List
 from tqdm import tqdm
-import shutil
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+import plotly.express as px
+import plotly.io as pio
 
+import demesdraw
 import demes
 import tskit
 try:
@@ -43,7 +47,7 @@ def calculate_L_list(num_trees:List[int],L:int) -> List[int]:
         final_allocation = initial_allocation
     return final_allocation
 
-def prepare_from_simulation(demes_file_path: str, output_path: str, n: int, L: int):
+def prepare_from_simulation(demes_file_path: str, n: int, L: int):
     """prepares an iterator of tree sequences given a demes file to simulate.
 
     Args:
@@ -58,10 +62,7 @@ def prepare_from_simulation(demes_file_path: str, output_path: str, n: int, L: i
     """
     if "SS" in demes_file_path: ## simulate only 2 samples per deme for stepping stones models
         n=2
-    else:
-        graph = demes.load(demes_file_path)
-        demes.dump(graph,os.path.join(output_path,"deme.yaml"))
-    
+    graph = demes.load(demes_file_path)
     demography = msprime.Demography.from_demes(graph)
     K=0
     samples = {}
@@ -119,6 +120,32 @@ def estimate_delta(node_times,L,average_num_events = 200):
     delta_estimate = average_num_events * Ne_estimate / L
     return delta_estimate
 
+def plot_deme(input,output,t_list,colors_dict,log_time):
+    graph = demes.load(input)
+    fig,ax_demes = plt.subplots(figsize = (3,5))
+    demesdraw.tubes(graph,ax=ax_demes,max_time=np.max(t_list),colours = colors_dict,labels="xticks-legend",log_time=log_time)
+    ax_demes.set_title("Simulated Demography")
+    if ax_demes.get_legend() is not None:
+        ax_demes.get_legend().remove()
+    fig.savefig(os.path.join(output,"deme.png"),dpi=500)
+    return fig
+
+def dynamic_3d_plot(output, embeddings_df,colors_dict,log_time):
+    component_1_df = embeddings_df[embeddings_df.component==1].drop(columns=["component","time_inx"])
+    component_1_df.rename(columns={'embedding': 'dimension 1'}, inplace=True)
+    component_2_df = embeddings_df[embeddings_df.component==2].drop(columns=["component","time_inx"])
+    component_2_df.rename(columns={'embedding': 'dimension 2'}, inplace=True)
+    df = pd.merge(component_1_df,component_2_df,how="right",on=["sample_id","population","time"])
+    fig = px.line_3d(df, x="dimension 1", y="dimension 2", z="time",log_z=log_time, color='population',line_group='sample_id',
+        color_discrete_map=colors_dict
+    )
+    fig.update_layout(showlegend=False)
+    fig.show()
+    pio.write_html(fig, file=os.path.join(output,"dynamic_3d_plot.html"))
+
+    return fig
+
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -126,7 +153,7 @@ def main():
     parser.add_argument("-output", type=str, required=True, help="output path")
     parser.add_argument("-metadata", type=str, help="path to metadata file. Must include columns with names [population,sample_id]")
     parser.add_argument("-mode", type=str, default="inferred", help="either 'simulated' or 'inferred'.")
-    parser.add_argument("-L", type=int, help="number of independent trees to sample or simulate")
+    parser.add_argument("-L", type=int, default=10000, help="number of independent trees to sample or simulate")
     parser.add_argument("-min_time", type=float, help="minimum time to start computing rates and embeddings")
     parser.add_argument("-max_time", type=float, help="maximum time to compute rates and embeddings")
     parser.add_argument("-num_timepoints", type=int, default=100, help="number of timepoints to use")
@@ -157,11 +184,8 @@ def main():
     # Preprocess the trees
     assert mode == "inferred" or mode == "simulated", "mode must be 'simulated' or 'inferred'"
     if mode == "simulated":
-        if L is None:
-            L=10000
         n=50
-        ts_list,L_list,n_samples,population_samples_dict = prepare_from_simulation(demes_file_path = input, output_path = output, n=n, L=L)
-        shutil.copy(input,output)
+        ts_list,L_list,n_samples,population_samples_dict = prepare_from_simulation(demes_file_path = input, n=n, L=L)
 
         print(f"simulating {L} trees under specified demography")
     elif mode == "inferred":
@@ -189,6 +213,21 @@ def main():
     # Saving data
     data_df.write_parquet(os.path.join(output,"data.parquet"))
     embeddings_df.write_parquet(os.path.join(output,"embeddings.parquet"))
+
+    # Plotting
+    print("plotting results")
+    embeddings_df = embeddings_df.to_pandas()
+    labels = np.unique(embeddings_df.population)
+    if "SS" in input:
+        labels = np.array(sorted(labels, key=lambda x: int(x.split('_')[1])))
+    K = len(labels)
+    cmap = plt.get_cmap("rainbow")
+    colors = cmap(np.linspace(0,255,K).astype(int))[:,:-1]
+    colors_dict = {label:mcolors.to_hex(colors[i]) for i,label in enumerate(labels)}
+
+    if "SS" not in input and mode == "simulated":
+        deme_fig = plot_deme(input,output,t_list,colors_dict,log_time)
+    dynamic_fig = dynamic_3d_plot(output, embeddings_df, colors_dict, log_time)
 
 if __name__ == "__main__":
     main()
