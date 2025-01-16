@@ -1,4 +1,4 @@
-name: trace
+name: trasp
 channels:
   - conda-forge
   - defaults
