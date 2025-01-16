@@ -1,8 +1,12 @@
 from tqdm import tqdm
 from sklearn.manifold import smacof
 from utils import matrix_to_df
+from numpy.typing import NDArray
+import polars as pl
+import warnings
+warnings.filterwarnings("ignore")
 
-def rates_to_distance(rates_over_time):
+def rates_to_distances(rates_over_time):
     n = rates_over_time.shape[0]
     rates_over_time[rates_over_time==0] = np.min(rates_over_time[rates_over_time!=0])*0.5
     D = -np.log(rates_over_time/np.max(rates_over_time))
@@ -14,14 +18,14 @@ def compute_embeddings_over_time(rates_over_time,n_components: int = 2):
     """Computes PCs over time given a matrix over time
 
     Args:
-        rates_over_time (np.ndarray): different matrices over the third dimension is over different time points
+        rates_over_time (NDArray): different matrices over the third dimension is over different time points
         n_components (int, optional): num components to compute PCA. Defaults to 2.
     """
 
     n = rates_over_time.shape[0]
     n_timepoints = rates_over_time.shape[-1]
     X_over_time = np.zeros((n,n_components,n_timepoints))
-    D = rates_to_distance(rates_over_time)
+    D = rates_to_distances(rates_over_time)
 
     for k in tqdm(range(n_timepoints)):
         inx = n_timepoints-k-1
@@ -33,7 +37,7 @@ def compute_embeddings_over_time(rates_over_time,n_components: int = 2):
         init = X
     return X_over_time
 
-def create_embeddings_df(matrix: np.ndarray, times: np.ndarray, samples_dict: dict) -> pl.DataFrame:
+def create_embeddings_df(matrix: NDArray, times: NDArray, samples_dict: dict) -> pl.DataFrame:
     # Convert matrix to Polars DataFrame
     df = matrix_to_df(matrix)
 

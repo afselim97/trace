@@ -1,2 +1,5 @@
 # log files
 *.pyc
+
+## Output dataframes
+*.parquet

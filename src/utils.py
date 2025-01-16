@@ -91,3 +91,20 @@ def create_data_df(matrix: np.ndarray, times: np.ndarray,delta: float, samples_d
     ])
 
     return df
+
+def get_samples_dict(metadata_csv: pd.DataFrame) -> Dict[str,List[int]]:
+    """Obtains a dictionary of sample ids in populations given an extrenal csv of the data. Keys are population labels and values are sample_ids.
+
+    Args:
+        metadata_csv (pd.DataFrame): input csv must have columns with names "sample_id"
+
+    Returns:
+        Dict: a dictionary with population names as keys and list of sample ids as values
+    """
+    assert np.all(np.in1d(np.array(list(metadata_csv.columns)),np.array(["sample_id","population"])))
+    populations = np.unique(metadata_csv.population.values)
+    samples_dict = {}
+    for population in populations:
+        sample_ids = metadata_csv[metadata_csv.population == population].sample_id.values
+        samples_dict[population] = sample_ids
+    return samples_dict
