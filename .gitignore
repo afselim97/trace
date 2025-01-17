@@ -3,3 +3,6 @@
 
 ## Output dataframes
 *.parquet
+
+## Inferred Trees
+data/Trees
