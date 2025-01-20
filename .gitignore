@@ -6,4 +6,4 @@
 *.parquet
 
 ## Inferred Trees
-data/Trees
+data/trees

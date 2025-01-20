@@ -7,7 +7,8 @@ import pandas as pd
 import os
 import subprocess
 #%%
-PATH_TO_RELATE = "/Users/afselim/Documents/RELATE/"
+# PATH_TO_RELATE = "/Users/afselim/Documents/RELATE/"
+PATH_TO_RELATE = "/project2/jnovembre/afselim/relate/"
 parser = argparse.ArgumentParser()
 parser.add_argument("-input",type = str)
 parser.add_argument("-output",type = str)
@@ -21,7 +22,8 @@ os.makedirs(output, exist_ok=True)
 n=10
 mu = 1.3e-8
 r = 1.3e-8
-sequence_length = 8e8
+# sequence_length = 8e8
+sequence_length = 1e7
 
 graph = demes.load(input)
 demography = msprime.Demography.from_demes(graph)
