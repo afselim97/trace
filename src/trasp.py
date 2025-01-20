@@ -80,7 +80,6 @@ class trasp():
         self.node_time_matrix = node_time_matrix
         self.parent_time_matrix = parent_time_matrix
         self.num_nodes_tree = num_nodes_tree
-        self.nodes = traversal_matrix[:,0][~np.in1d(traversal_matrix[:,0],self.sample_ids_list)]
 
     def coal_events_tree(self,preorder_traversal: List[int], node_times: List[float], t_list_lower: List[float], t_list_upper: List[float], window_list_upper: List[float]) -> NDArray[np.bool_]:
         """For a single tree represented by its preorder traversal, and a sliding time window with potentially variable width,  finds time points where each pair of samples coalesced.
@@ -98,8 +97,9 @@ class trasp():
         """
         coalesced_between_windows = np.zeros((self.n,self.n,len(t_list_lower)),bool)
         coalesced_within_windows = np.zeros((self.n,self.n,len(t_list_lower)),bool)
+        nodes = preorder_traversal[~np.in1d(preorder_traversal,self.sample_ids_list)]
 
-        for node in self.nodes: # Each node represents a coalescence event
+        for node in nodes: # Each node represents a coalescence event
             leaf_sets = get_leaf_sets(preorder_traversal,node,self.sample_ids_list) # At each node, 2 or more clades coalesce, such that all samples between each pair of clades coalesce at this time
             node_time = node_times[preorder_traversal==node][0] # The time of this coalescent event
             above_lower_bound = node_time > t_list_lower # Event happened at a time above the lower bound of the time window
