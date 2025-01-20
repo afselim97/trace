@@ -3,9 +3,11 @@ import msprime
 import argparse
 import demes
 import numpy as np
+import pandas as pd
 import os
 import subprocess
 #%%
+PATH_TO_RELATE = "/Users/afselim/Documents/RELATE/"
 parser = argparse.ArgumentParser()
 parser.add_argument("-input",type = str)
 parser.add_argument("-output",type = str)
@@ -14,12 +16,12 @@ args = parser.parse_args()
 input = args.input
 output = args.output
 
-os.makedirs(output)
+os.makedirs(output, exist_ok=True)
 # %%
 n=10
 mu = 1.3e-8
 r = 1.3e-8
-sequence_length = 4e7
+sequence_length = 1e8
 
 graph = demes.load(input)
 demography = msprime.Demography.from_demes(graph)
@@ -29,10 +31,15 @@ population_samples_dict = {}
 for pop in demography.populations:
     if pop.default_sampling_time == 0:
         samples[pop.name] = n
-        population_samples_dict[pop.name] = np.arange(n*K,n*(K+1))
+        population_samples_dict[pop.name] = np.arange(2*n*K,2*n*(K+1))
         K+=1
 n_samples = n*K
 
+population_samples_tuples = [(pop, sample_id) for pop, sample_ids in population_samples_dict.items() for sample_id in sample_ids]
+metadata_df = pd.DataFrame(population_samples_tuples, columns=["population", "sample_id"])
+metadata_df.to_csv(os.path.join(output, "metadata.csv"), index=False)
+
+print("simulating trees")
 ts = msprime.sim_ancestry(
     samples = samples,
     demography = demography,
@@ -51,15 +58,14 @@ with open(os.path.join(output,"chrom.map"),"w") as f:
 # msprime.RateMap.read_hapmap(os.path.join(output,"chrom.map"))
 
 # %%
-PATH_TO_RELATE = "/Users/afselim/Documents/RELATE/"
 os.chdir(output)
 #%%
 process_vcf = f'"{PATH_TO_RELATE}bin/RelateFileFormats" --mode ConvertFromVcf --haps chrom.hap --sample chrom.sample -i vcf_format'
 run_relate = f'"{PATH_TO_RELATE}bin/Relate" --mode All -N {N} -m {mu} --haps chrom.hap --sample chrom.sample --map chrom.map --output relate_inference'
 convert_to_treesequence = f'"{PATH_TO_RELATE}bin/RelateFileFormats" --mode ConvertToTreeSequence -i relate_inference -o ts_relate'
 
-cmd1 = subprocess.run(process_vcf, shell=True, capture_output=True, text=True)
-cmd2 = subprocess.run(run_relate, shell=True, capture_output=True, text=True)
-cmd3 = subprocess.run(convert_to_treesequence, shell=True, capture_output=True, text=True)
+cmd1 = subprocess.run(process_vcf, shell=True, capture_output=False)
+cmd2 = subprocess.run(run_relate, shell=True, capture_output=False)
+cmd3 = subprocess.run(convert_to_treesequence, shell=True, capture_output=False)
 
 # %%
