@@ -1,0 +1,22 @@
+time_units: generations
+generation_time: 1
+demes:
+- name: main
+  epochs:
+  - {end_time: 5, start_size: 10}
+- name: C
+  ancestors: [main]
+  epochs:
+  - {end_time: 0, start_size: 20}
+- name: temp_pop
+  ancestors: [main]
+  epochs:
+  - {end_time: 1, start_size: 3}
+- name: A
+  ancestors: [temp_pop]
+  epochs:
+  - {end_time: 0, start_size: 1}
+- name: B
+  ancestors: [temp_pop]
+  epochs:
+  - {end_time: 0, start_size: 2.5}
