@@ -1,6 +1,8 @@
 # log files
 *.pyc
 *.DS_Store
+error*
+output*
 
 ## Output dataframes
 *.parquet

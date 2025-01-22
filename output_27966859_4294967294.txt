@@ -1,4 +1,0 @@
-Running method on simulations for admix
-simulating 200 trees under specified demography
-Estimating pairwise coalescent rates
-computing embeddings using MDS
