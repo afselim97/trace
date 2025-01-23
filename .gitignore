@@ -3,6 +3,7 @@
 *.DS_Store
 error*
 output*
+job*.sh
 
 ## Output dataframes
 *.parquet
