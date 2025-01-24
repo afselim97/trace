@@ -1,12 +1,13 @@
 # log files
 *.pyc
 *.DS_Store
-error*
-output*
-job*.sh
+job_logs/
 
 ## Output dataframes
 *.parquet
 
 ## Inferred Trees
 data/trees
+
+## Tests
+tests/

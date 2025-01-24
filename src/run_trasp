@@ -10,6 +10,44 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import plotly.express as px
 import plotly.io as pio
+from matplotlib.cm import get_cmap
+from matplotlib import rcParams
+def set_custom_rcparams():
+    # -- Axes --
+    rcParams['axes.spines.bottom'] = True
+    rcParams['axes.spines.left'] = True
+    rcParams['axes.spines.right'] = False
+    rcParams['axes.spines.top'] = False
+    rcParams['axes.grid'] = False
+    rcParams['axes.grid.axis'] = 'y'
+    rcParams['grid.color'] = 'black'
+    rcParams['grid.linewidth'] = 0.5
+    rcParams['axes.axisbelow'] = True
+    rcParams['axes.linewidth'] = 1
+    rcParams['axes.ymargin'] = 0
+    # -- Ticks and tick labels --
+    rcParams['axes.edgecolor'] = 'black'
+    rcParams['xtick.color'] = 'black'
+    rcParams['ytick.color'] = 'black'
+    rcParams['xtick.major.width'] = 2
+    rcParams['ytick.major.width'] = 0
+    rcParams['xtick.major.size'] = 5
+    rcParams['ytick.major.size'] = 0
+    # -- Fonts --
+    rcParams['font.size'] = 12
+    rcParams['font.family'] = 'sans-serif'
+    plt.rcParams['font.sans-serif'] = ['Helvetica', 'Arial', 'sans-serif']
+    rcParams['text.color'] = 'black'
+    rcParams['axes.labelcolor'] = 'black'
+    # -- Figure size --
+    rcParams['figure.figsize'] = (6, 6)
+    # -- Saving Options --
+    rcParams['savefig.bbox'] = 'tight'
+    rcParams['savefig.dpi'] = 500
+    rcParams['savefig.transparent'] = False
+    # -- Plot Styles --
+    rcParams['lines.linewidth'] = 3
+set_custom_rcparams()
 
 import demesdraw
 import demes
@@ -139,12 +177,38 @@ def dynamic_3d_plot(output, embeddings_df,colors_dict,log_time):
     fig = px.line_3d(df, x="dimension 1", y="dimension 2", z="time",log_z=log_time, color='population',line_group='sample_id',
         color_discrete_map=colors_dict
     )
-    fig.update_layout(showlegend=False)
+    fig.update_layout(showlegend=True)
     fig.show()
     pio.write_html(fig, file=os.path.join(output,"dynamic_3d_plot.html"))
 
     return fig
 
+def plot_rate_trajectories(output, df, log_time):
+    fig,ax = plt.subplots(1,1)
+    df = df[df['sample_1_inx'] < df['sample_2_inx']]
+    
+    df['population_combination'] = df['population_1'].astype(str) + "_" + df['population_2'].astype(str)
+    unique_pop_combs = np.unique(df['population_combination'])
+    cmap = get_cmap("viridis")
+    palette = [cmap(i / len(unique_pop_combs)) for i in range(len(unique_pop_combs))]
+    color_dict = dict(zip(unique_pop_combs, palette))
+
+    sample_1_inxs = np.unique(df["sample_1_inx"])
+    sample_2_inxs = np.unique(df["sample_2_inx"])
+    fig,ax = plt.subplots(1,1,figsize=(6,6))
+    for sample_1_inx in sample_1_inxs:
+        for sample_2_inx in sample_2_inxs:
+                df_sub = df[(df["sample_1_inx"] == sample_1_inx) & (df["sample_2_inx"] == sample_2_inx)]
+                if df_sub.shape[0] > 0:
+                    ax.plot(df_sub["time"],df_sub["raw_rate"],lw=0.2,c = color_dict[df_sub["population_combination"].values[0]])
+    if log_time:
+        ax.set_xscale("log")
+
+    handles = [plt.Line2D([0], [0], color=color_dict[pop], lw=2) for pop in unique_pop_combs]
+    labels = unique_pop_combs
+    ax.legend(handles, labels, title='Population Combination', loc='upper right')
+    fig.savefig(os.path.join(output,"rate_trajectories.png"))
+    return fig
 
 
 def main():
@@ -228,6 +292,10 @@ def main():
     if "SS" not in input and mode == "simulated":
         deme_fig = plot_deme(input,output,t_list,colors_dict,log_time)
     dynamic_fig = dynamic_3d_plot(output, embeddings_df, colors_dict, log_time)
+
+    # Plotting the rates
+    data_df = data_df.to_pandas()
+    fig = plot_rate_trajectories(output, data_df, log_time)
 
 if __name__ == "__main__":
     main()
