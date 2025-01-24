@@ -23,7 +23,7 @@ n=10
 mu = 1.3e-8
 r = 1.3e-8
 sequence_length = 8e8
-# sequence_length = 1e7
+# sequence_length = 1e8
 
 graph = demes.load(input)
 demography = msprime.Demography.from_demes(graph)
