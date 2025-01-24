@@ -38,5 +38,5 @@ Only 3 flags are required (**-input**, **-output** and **metadata**), the rest a
 For example, running the following command will simulate a basic population split scenario, and apply the method to it.
 
 ```
-src/run_trasp -input data/demes/split.yaml -output results/simulations/split -mode simulated -L 5000 -delta 200
+src/run_trasp -input data/demes/split.yaml -output data/results/simulations/split -mode simulated -L 10000 -delta 100
 ```
