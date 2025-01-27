@@ -1,6 +1,6 @@
 #!/bin/bash
 L=50000
-max_time=3000
+max_time=25000
 
 
 if [ "$#" -ne 1 ]; then
