@@ -7,6 +7,7 @@ from numpy.typing import NDArray
 import random
 from numba import njit
 from numba.typed import List as numba_List
+import tskit
 
 #%%
 class trasp():
@@ -15,9 +16,7 @@ class trasp():
     """
     def __init__(
         self,
-        tree_sequences: Iterator,
-        L_list: List[int],
-        n_samples: int
+        ts: tskit.TreeSequence
         ) -> None:
         """instantiation iterates over an iterator of tree sequences. For each tree sequence, it reads off L local trees, as specified by the L_list parameter.
             For each of these trees, a preorder traversal of the local tree is stored in a column of the "traversal_matrix." The time of these nodes and the time of their parents is also stored in other matrices.
