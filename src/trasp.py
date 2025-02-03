@@ -130,7 +130,7 @@ class trasp():
         delta_list = np.array(delta_list)
 
         traversal_matrix = self.traversal_matrix
-        nodes_time_matrix = self. node_time_matrix
+        nodes_time_matrix = self.node_time_matrix
         
         if t_list[0] == 0:
             t_list_lower = t_list

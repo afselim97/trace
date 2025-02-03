@@ -242,7 +242,7 @@ def main():
     if mode == "inferred":
         assert metadata is not None, "for inferred trees, metadata file has to be provided"
         metadata = pd.read_csv(metadata)
-        assert np.all(np.in1d(np.array(list(metadata.columns)),np.array(["sample_id","population"]))), "metadata file must have columns ['sample_id','population']"
+        assert all(col in metadata.columns for col in ["sample_id", "population"]), "metadata file must include columns ['sample_id','population']"
         population_samples_dict = get_samples_dict(metadata)
 
     # Preprocess the trees
@@ -257,14 +257,14 @@ def main():
         ts_list,L_list,n_samples = prepare_from_inference(inferred_trees_dir =input, L=L)
 
     # Compute the rates
-    trace_instance = trasp(ts_list,L_list,n_samples)
-    node_times = trace_instance.node_time_matrix
+    trasp_instance = trasp(ts_list,L_list,n_samples)
+    node_times = trasp_instance.node_time_matrix
     if delta is None:
         delta = estimate_delta(node_times,L,average_num_events = 200)
     t_list,delta_list = get_timepoints(min_time,max_time,num_timepoints,log_time,delta,node_times)
     
     print("Estimating pairwise coalescent rates")
-    num_uncoalesced_through_time,num_coal_events_within_windows,rates_through_time = trace_instance.compute_coal_rates(t_list, delta_list)
+    num_uncoalesced_through_time,num_coal_events_within_windows,rates_through_time = trasp_instance.compute_coal_rates(t_list, delta_list)
 
     data_matrix = np.stack((num_uncoalesced_through_time,num_coal_events_within_windows,rates_through_time),axis=3)
     data_df = create_data_df(data_matrix,t_list,delta,population_samples_dict)

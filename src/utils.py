@@ -101,7 +101,6 @@ def get_samples_dict(metadata_csv: pd.DataFrame) -> Dict[str,List[int]]:
     Returns:
         Dict: a dictionary with population names as keys and list of sample ids as values
     """
-    assert np.all(np.in1d(np.array(list(metadata_csv.columns)),np.array(["sample_id","population"])))
     populations = np.unique(metadata_csv.population.values)
     samples_dict = {}
     for population in populations:
