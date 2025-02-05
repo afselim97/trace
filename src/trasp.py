@@ -27,9 +27,8 @@ class trasp():
             n_samples[int] : number of samples in the trees
         """
         # Basic definitions
-        self.n = n_samples
-        self.sample_ids_list = np.arange(n_samples)
-        self.L = np.sum(L_list) # Total number of trees
+        self.n = ts.num_samples
+        self.sample_ids_list = ts.samples()
 
         burnin = 0.1 # This is the percentage of a chromosome in the beginning and the end to avoid extracting trees from (telomere and centromere)
         cumsum_L = np.concatenate(([0],np.cumsum(L_list)))  
@@ -213,4 +212,6 @@ def get_leaf_sets(preorder_traversal: NDArray[np.int64],parent_node_id: int,samp
             leaf_set = np.ones(n,dtype=np.int32)*-1
     
     return leaf_sets
+
+
 # %%
